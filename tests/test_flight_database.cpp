@@ -114,3 +114,50 @@ TEST(FlightDatabase, SuspendAndResumeAirport) {
     EXPECT_FALSE(db.is_airport_suspended(48));
     EXPECT_EQ(db.direct_flights(48, 50).size(), before.size());
 }
+
+TEST(FlightDatabase, BatchApplyAddMod) {
+    FlightDatabase db;
+    db.load(std::string(FLIGHT_DATA_DIR) + "/flights.csv");
+    const size_t before = db.size();
+    db.batch_apply(std::string(FLIGHT_DATA_DIR) + "/batch_ops.txt");
+    EXPECT_EQ(db.size(), before + 1);
+    ASSERT_NE(db.find_by_id(90001), nullptr);
+    EXPECT_EQ(db.find_by_id(90001)->fare, 700);   // MOD 生效
+}
+
+TEST(FlightDatabase, BatchApplyDelete) {
+    FlightDatabase db;
+    db.load(std::string(FLIGHT_DATA_DIR) + "/flights.csv");
+    db.batch_apply(std::string(FLIGHT_DATA_DIR) + "/batch_ops.txt");   // 先 ADD 出 90001
+    const size_t after_add = db.size();
+    db.batch_apply(std::string(FLIGHT_DATA_DIR) + "/batch_ops_del.txt");
+    EXPECT_EQ(db.size(), after_add - 1);
+    EXPECT_EQ(db.find_by_id(90001), nullptr);
+}
+
+TEST(FlightDatabase, BatchApplyUnknownOpThrows) {
+    FlightDatabase db;
+    db.load(std::string(FLIGHT_DATA_DIR) + "/flights.csv");
+    EXPECT_THROW(db.batch_apply(std::string(FLIGHT_DATA_DIR) + "/batch_ops_bad.txt"),
+                 std::runtime_error);
+}
+
+TEST(FlightDatabase, BestFlightsShortestDuration) {
+    FlightDatabase db;
+    db.add(mk(1, 48, 50, "5/5/2017 08:00", "5/5/2017 09:00", 500));  // 1 小时,贵
+    db.add(mk(2, 48, 50, "5/5/2017 10:00", "5/5/2017 13:00", 100));  // 3 小时,便宜
+    const auto best = db.best_flights(48, 50);
+    ASSERT_EQ(best.shortest_duration.size(), 1u);
+    EXPECT_EQ(best.shortest_duration.front().id, 1);
+    ASSERT_EQ(best.cheapest.size(), 1u);
+    EXPECT_EQ(best.cheapest.front().id, 2);
+}
+
+TEST(FlightDatabase, BestFlightsPlusOneDay) {
+    FlightDatabase db;
+    db.add(mk(1, 48, 50, "5/5/2017 23:00", "5/6/2017 01:00", 500));  // 次日到达
+    db.add(mk(2, 48, 50, "5/5/2017 08:00", "5/5/2017 09:00", 100));  // 当日到达
+    const auto best = db.best_flights(48, 50);
+    ASSERT_EQ(best.plus_one_day.size(), 1u);
+    EXPECT_EQ(best.plus_one_day.front().id, 1);
+}

@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <optional>
+#include <stdexcept>
 
 using flight::DateTime;
 using flight::Flight;
@@ -115,4 +117,44 @@ TEST(RouteService, SuspendedAirportAffectsConnectivity) {
     const auto routes = svc.connectivity(1, 3, 1);
     ASSERT_EQ(routes.size(), 1u);
     EXPECT_EQ(routes[0], (std::vector<int>{3}));
+}
+
+TEST(RouteService, ParseCriterion) {
+    EXPECT_EQ(flight::parse_criterion("duration"), flight::Criterion::Duration);
+    EXPECT_EQ(flight::parse_criterion("fare"), flight::Criterion::Fare);
+    EXPECT_THROW(flight::parse_criterion("xxx"), std::invalid_argument);
+}
+
+TEST(RouteService, ConnectivityDepWindow) {
+    FlightDatabase db = make_db();
+    RouteService svc(db);
+    // 首段起飞 >= 9:00,排除 f1(08:00 起飞)
+    const flight::TimeWindow dep_win{DateTime(2017, 5, 5, 9, 0), std::nullopt};
+    const auto routes = svc.connectivity(1, 3, 1, dep_win, std::nullopt);
+    ASSERT_EQ(routes.size(), 1u);
+    EXPECT_EQ(routes[0], (std::vector<int>{3}));
+}
+
+TEST(RouteService, ConnectivityArrWindow) {
+    FlightDatabase db = make_db();
+    RouteService svc(db);
+    // 末段到达 <= 12:00,排除 f4(13:00 到达)
+    const flight::TimeWindow arr_win{std::nullopt, DateTime(2017, 5, 5, 12, 0)};
+    const auto routes = svc.connectivity(1, 3, 1, std::nullopt, arr_win);
+    ASSERT_EQ(routes.size(), 2u);
+    EXPECT_TRUE(contains(routes, {3}));
+    EXPECT_TRUE(contains(routes, {1, 2}));
+}
+
+TEST(RouteService, OptimalFareTie) {
+    FlightDatabase db;
+    db.add(mk(1, 1, 2, "5/5/2017 08:00", "5/5/2017 10:00", 100));
+    db.add(mk(4, 2, 3, "5/5/2017 11:00", "5/5/2017 13:00", 150));
+    db.add(mk(3, 1, 3, "5/5/2017 09:00", "5/5/2017 11:00", 250));  // 直飞 250
+    RouteService svc(db);
+    // 两条路线票价相等:直飞 f3=250,换乘 f1->f4=100+150=250
+    const auto routes = svc.optimal_routes(1, 3, flight::Criterion::Fare);
+    ASSERT_EQ(routes.size(), 2u);
+    EXPECT_TRUE(contains(routes, {3}));
+    EXPECT_TRUE(contains(routes, {1, 4}));
 }

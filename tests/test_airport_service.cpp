@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <fstream>
+#include <optional>
 #include <string>
 
 #ifndef FLIGHT_DATA_DIR
@@ -89,4 +90,39 @@ TEST(AirportService, RecommendSameProvince) {
         EXPECT_TRUE(f.from_airport == 1 || f.from_airport == 2);
         EXPECT_TRUE(f.to_airport == 3 || f.to_airport == 4);
     }
+}
+
+TEST(AirportService, BusiestAirportTie) {
+    FlightDatabase db;
+    db.add(mk(1, 1, 2, "5/5/2017 08:00", "5/5/2017 09:00", 100));
+    db.add(mk(2, 2, 1, "5/5/2017 10:00", "5/5/2017 11:00", 100));
+
+    AirportService svc;
+    const auto traffic = svc.busiest_airports(db);
+    ASSERT_EQ(traffic.size(), 2u);        // 两个并列最忙
+    EXPECT_EQ(traffic[0].airport_id, 1);  // 按 id 升序
+    EXPECT_EQ(traffic[1].airport_id, 2);
+    EXPECT_EQ(traffic[0].total(), 2);
+    EXPECT_EQ(traffic[1].total(), 2);
+}
+
+TEST(AirportService, BusiestAirportDepWindow) {
+    FlightDatabase db;
+    db.add(mk(1, 1, 2, "5/5/2017 08:00", "5/5/2017 08:30", 100));
+    db.add(mk(2, 1, 3, "5/5/2017 10:00", "5/5/2017 10:30", 100));
+
+    AirportService svc;
+    // 无窗口:机场1 起飞 2 班最忙
+    const auto all = svc.busiest_airports(db);
+    ASSERT_EQ(all.size(), 1u);
+    EXPECT_EQ(all[0].airport_id, 1);
+    EXPECT_EQ(all[0].departures, 2);
+
+    // 限定起飞 >= 9:00:早班(8:00)被排除,机场1 只剩 1 班起飞
+    const flight::TimeWindow dep_win{DateTime(2017, 5, 5, 9, 0), std::nullopt};
+    const auto filtered = svc.busiest_airports(db, dep_win, std::nullopt);
+    // 机场1 dep=1,机场2 arr=1,机场3 arr=1 → 三者并列,按 id 升序
+    ASSERT_EQ(filtered.size(), 3u);
+    EXPECT_EQ(filtered[0].airport_id, 1);
+    EXPECT_EQ(filtered[0].departures, 1);   // 关键:早班被过滤
 }
