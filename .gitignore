@@ -1,0 +1,21 @@
+# Build artifacts
+/build/
+/cmake-build-*/
+
+# AI 元文件（遵循 workspace 规范，禁止上传）
+CLAUDE.md
+memory/
+.claude/
+
+# 编辑器 / 系统文件
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# 编译产物
+*.o
+*.obj
+*.exe
+*.out

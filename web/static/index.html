@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>航班管理与航线搜索系统</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>✈️ 航班管理与航线搜索系统</h1>
+    <p>数据结构课程实验 · 实验一~实验六 · C++17 + STL + 图算法</p>
+  </header>
+
+  <main>
+    <section class="card" id="card-stats">
+      <h2>实验一 · 数据统计</h2>
+      <button onclick="loadStats()">刷新统计</button>
+      <div id="stats-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验一 · 直达航班查询与标记</h2>
+      <div class="row">
+        <input id="direct-from" type="number" placeholder="出发机场 ID" />
+        <input id="direct-to" type="number" placeholder="到达机场 ID" />
+        <button onclick="queryDirect()">查询</button>
+      </div>
+      <div id="direct-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验二 · 航班增删改</h2>
+      <div class="row">
+        <input id="flight-id" type="number" placeholder="航班 ID" />
+        <button onclick="getFlight()">查询</button>
+        <button onclick="delFlight()">删除</button>
+      </div>
+      <div class="row">
+        <textarea id="flight-json" rows="3" placeholder='新增/修改：粘贴航班 JSON，例如 {"id":9999,"flight_no":100,"is_international":false,"from_airport":1,"to_airport":2,"dep_time":"5/5/2017 12:20","arr_time":"5/5/2017 15:10","airplane_id":30,"airplane_model":1,"fare":666}'></textarea>
+      </div>
+      <div class="row">
+        <button onclick="addFlight()">新增</button>
+        <button onclick="updateFlight()">按 ID 修改</button>
+      </div>
+      <div id="crud-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验三 · 机场暂停 / 恢复</h2>
+      <div class="row">
+        <input id="airport-id" type="number" placeholder="机场 ID" />
+        <button onclick="suspendAirport()">暂停</button>
+        <button onclick="resumeAirport()">恢复</button>
+      </div>
+      <div id="sr-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验三 · 最多乘机</h2>
+      <div class="row">
+        <input id="max-start" type="number" placeholder="起始航班 ID" />
+        <button onclick="maxFlights()">计算</button>
+      </div>
+      <div id="max-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验四 · 机场名近似搜索</h2>
+      <div class="row">
+        <input id="search-q" type="text" placeholder="关键词，如 Beijing / Guang" />
+        <button onclick="searchAirport()">搜索</button>
+      </div>
+      <div id="search-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验四 · 同省机场推荐</h2>
+      <div class="row">
+        <input id="rec-from" type="number" placeholder="出发机场 ID" />
+        <input id="rec-to" type="number" placeholder="到达机场 ID" />
+        <button onclick="recommend()">推荐</button>
+      </div>
+      <div id="rec-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验五 · 最繁忙机场</h2>
+      <div class="row">
+        <input id="busy-dep-start" type="text" placeholder="起飞时段起点(可选)" />
+        <input id="busy-dep-end" type="text" placeholder="起飞时段终点(可选)" />
+        <input id="busy-arr-start" type="text" placeholder="降落时段起点(可选)" />
+        <input id="busy-arr-end" type="text" placeholder="降落时段终点(可选)" />
+        <button onclick="busiest()">统计</button>
+      </div>
+      <div id="busy-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验六 · 连通性（直飞 / 1 次中转）</h2>
+      <div class="row">
+        <input id="conn-from" type="number" placeholder="出发机场 ID" />
+        <input id="conn-to" type="number" placeholder="到达机场 ID" />
+        <button onclick="connectivity()">查询</button>
+      </div>
+      <div id="conn-out" class="out"></div>
+    </section>
+
+    <section class="card">
+      <h2>实验六 · 最优乘机方案</h2>
+      <div class="row">
+        <input id="opt-from" type="number" placeholder="出发机场 ID" />
+        <input id="opt-to" type="number" placeholder="到达机场 ID" />
+        <select id="opt-criteria">
+          <option value="duration">最短飞行时间</option>
+          <option value="fare">最低航费</option>
+        </select>
+        <button onclick="optimal()">查询</button>
+      </div>
+      <div id="opt-out" class="out"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
