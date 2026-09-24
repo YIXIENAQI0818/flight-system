@@ -28,7 +28,7 @@ Criterion parse_criterion(const std::string& s) {
     throw std::invalid_argument("未知评价维度: '" + s + "'（应为 duration 或 fare）");
 }
 
-std::vector<int> RouteService::topological_order(const FlightGraph& g) {
+std::vector<int> RouteService::_topological_order(const FlightGraph& g) {
     std::vector<int> order(g.flights().size());
     for (size_t i = 0; i < order.size(); ++i) {
         order[i] = static_cast<int>(i);
@@ -45,7 +45,7 @@ std::vector<std::vector<int>> RouteService::connectivity(
     const std::optional<TimeWindow>& dep_window,
     const std::optional<TimeWindow>& arr_window) const {
     FlightGraph g;
-    g.build(db_.active_flights(), kMinConnectionMinutes);
+    g.build(_db.active_flights(), kMinConnectionMinutes);
 
     std::vector<std::vector<int>> result;
     std::vector<int> path;
@@ -82,7 +82,7 @@ std::vector<std::vector<int>> RouteService::connectivity(
 std::vector<std::vector<int>> RouteService::optimal_routes(int from, int to,
                                                            Criterion criterion) const {
     FlightGraph g;
-    g.build(db_.active_flights(), kMinConnectionMinutes);
+    g.build(_db.active_flights(), kMinConnectionMinutes);
     const auto& flights = g.flights();
     const size_t n = flights.size();
 
@@ -97,7 +97,7 @@ std::vector<std::vector<int>> RouteService::optimal_routes(int from, int to,
         return flights[j].duration_minutes() + g.wait_minutes(i, j);
     };
 
-    const std::vector<int> order = topological_order(g);
+    const std::vector<int> order = _topological_order(g);
     std::vector<long long> dist(n, kInf);
     for (int i : by_from_safe(g, from)) {
         dist[i] = source_cost(i);
@@ -169,7 +169,7 @@ std::vector<std::vector<int>> RouteService::optimal_routes(int from, int to,
 RouteService::MaxFlightsResult RouteService::max_flights(int start_flight_id) const {
     MaxFlightsResult res;
     FlightGraph g;
-    g.build(db_.active_flights(), kMinConnectionMinutes);
+    g.build(_db.active_flights(), kMinConnectionMinutes);
     const int start = g.index_of(start_flight_id);
     if (start < 0) {
         // 起始航班不存在或已被暂停。
@@ -177,7 +177,7 @@ RouteService::MaxFlightsResult RouteService::max_flights(int start_flight_id) co
     }
 
     const size_t n = g.flights().size();
-    std::vector<int> order = topological_order(g);
+    std::vector<int> order = _topological_order(g);
     std::vector<int> dist(n, -1); // 最长路径的航班数，-1 表示不可达
     dist[start] = 1;
     for (int i : order) {

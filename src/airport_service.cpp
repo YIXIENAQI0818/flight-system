@@ -41,10 +41,10 @@ int longest_common_substring(const std::string& a, const std::string& b) {
 
 void AirportService::load(const std::string& path) {
     const auto table = CsvReader::read(path, /*skip_header=*/true);
-    airports_.clear();
-    by_province_.clear();
-    id_to_index_.clear();
-    airports_.reserve(table.size());
+    _airports.clear();
+    _by_province.clear();
+    _id_to_index.clear();
+    _airports.reserve(table.size());
     for (const auto& row : table) {
         if (row.size() < 4) {
             throw std::runtime_error("机场记录字段不足（需要 4 列）");
@@ -54,15 +54,15 @@ void AirportService::load(const std::string& path) {
         a.country = row[1];
         a.province = row[2];
         a.name = row[3];
-        id_to_index_[a.id] = airports_.size();
-        by_province_[a.province].push_back(a.id); // 必须在 move 之前读取 a 的字段
-        airports_.push_back(std::move(a));
+        _id_to_index[a.id] = _airports.size();
+        _by_province[a.province].push_back(a.id); // 必须在 move 之前读取 a 的字段
+        _airports.push_back(std::move(a));
     }
 }
 
 const Airport* AirportService::find_by_id(int id) const {
-    const auto it = id_to_index_.find(id);
-    return it == id_to_index_.end() ? nullptr : &airports_[it->second];
+    const auto it = _id_to_index.find(id);
+    return it == _id_to_index.end() ? nullptr : &_airports[it->second];
 }
 
 double AirportService::similarity(const std::string& query, const Airport& airport) {
@@ -108,8 +108,8 @@ double AirportService::similarity(const std::string& query, const Airport& airpo
 std::vector<AirportService::ScoredAirport>
 AirportService::search_by_name(const std::string& query, size_t k) const {
     std::vector<ScoredAirport> results;
-    results.reserve(airports_.size());
-    for (const auto& a : airports_) {
+    results.reserve(_airports.size());
+    for (const auto& a : _airports) {
         results.push_back({a, similarity(query, a)});
     }
     std::sort(results.begin(), results.end(), [](const ScoredAirport& x, const ScoredAirport& y) {
@@ -128,11 +128,11 @@ std::vector<Flight> AirportService::recommend_same_province(const FlightDatabase
     if (dep == nullptr || arr == nullptr) {
         return {};
     }
-    std::vector<int> dep_candidates = by_province_.count(dep->province)
-                                          ? by_province_.at(dep->province)
+    std::vector<int> dep_candidates = _by_province.count(dep->province)
+                                          ? _by_province.at(dep->province)
                                           : std::vector<int>{};
-    std::vector<int> arr_candidates = by_province_.count(arr->province)
-                                          ? by_province_.at(arr->province)
+    std::vector<int> arr_candidates = _by_province.count(arr->province)
+                                          ? _by_province.at(arr->province)
                                           : std::vector<int>{};
 
     std::unordered_map<int, bool> dep_set, arr_set;

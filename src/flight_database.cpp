@@ -62,34 +62,34 @@ Flight FlightDatabase::parse_row(const std::vector<std::string>& fields) {
     return f;
 }
 
-void FlightDatabase::rebuild_index() {
-    id_to_index_.clear();
-    for (size_t i = 0; i < flights_.size(); ++i) {
-        id_to_index_[flights_[i].id] = i;
+void FlightDatabase::_rebuild_index() {
+    _id_to_index.clear();
+    for (size_t i = 0; i < _flights.size(); ++i) {
+        _id_to_index[_flights[i].id] = i;
     }
 }
 
 void FlightDatabase::load(const std::string& path) {
     const auto table = CsvReader::read(path, /*skip_header=*/true);
-    flights_.clear();
-    flights_.reserve(table.size());
+    _flights.clear();
+    _flights.reserve(table.size());
     for (const auto& row : table) {
-        flights_.push_back(parse_row(row));
+        _flights.push_back(parse_row(row));
     }
-    rebuild_index();
-    suspended_airports_.clear();
+    _rebuild_index();
+    _suspended_airports.clear();
 }
 
 const Flight* FlightDatabase::find_by_id(int id) const {
-    const auto it = id_to_index_.find(id);
-    if (it == id_to_index_.end()) {
+    const auto it = _id_to_index.find(id);
+    if (it == _id_to_index.end()) {
         return nullptr;
     }
-    return &flights_[it->second];
+    return &_flights[it->second];
 }
 
 bool FlightDatabase::is_airport_suspended(int airport_id) const {
-    return suspended_airports_.count(airport_id) > 0;
+    return _suspended_airports.count(airport_id) > 0;
 }
 
 bool FlightDatabase::is_flight_active(const Flight& f) const {
@@ -98,8 +98,8 @@ bool FlightDatabase::is_flight_active(const Flight& f) const {
 
 std::vector<Flight> FlightDatabase::active_flights() const {
     std::vector<Flight> result;
-    result.reserve(flights_.size());
-    for (const auto& f : flights_) {
+    result.reserve(_flights.size());
+    for (const auto& f : _flights) {
         if (is_flight_active(f)) {
             result.push_back(f);
         }
@@ -117,24 +117,24 @@ void FlightDatabase::add(const Flight& f) {
     if (f.dep_time >= f.arr_time) {
         throw std::invalid_argument("航班 ID " + std::to_string(f.id) + " 起飞时间不早于到达时间");
     }
-    flights_.push_back(f);
-    id_to_index_[f.id] = flights_.size() - 1;
+    _flights.push_back(f);
+    _id_to_index[f.id] = _flights.size() - 1;
 }
 
 void FlightDatabase::remove(int id) {
-    const auto it = id_to_index_.find(id);
-    if (it == id_to_index_.end()) {
+    const auto it = _id_to_index.find(id);
+    if (it == _id_to_index.end()) {
         throw std::invalid_argument("航班 ID " + std::to_string(id) + " 不存在，无法删除");
     }
     const size_t idx = it->second;
-    flights_[idx] = flights_.back();
-    flights_.pop_back();
-    rebuild_index();
+    _flights[idx] = _flights.back();
+    _flights.pop_back();
+    _rebuild_index();
 }
 
 void FlightDatabase::update(const Flight& f) {
-    const auto it = id_to_index_.find(f.id);
-    if (it == id_to_index_.end()) {
+    const auto it = _id_to_index.find(f.id);
+    if (it == _id_to_index.end()) {
         throw std::invalid_argument("航班 ID " + std::to_string(f.id) + " 不存在，无法修改");
     }
     if (f.from_airport == f.to_airport) {
@@ -143,20 +143,20 @@ void FlightDatabase::update(const Flight& f) {
     if (f.dep_time >= f.arr_time) {
         throw std::invalid_argument("航班 ID " + std::to_string(f.id) + " 起飞时间不早于到达时间");
     }
-    flights_[it->second] = f;
+    _flights[it->second] = f;
 }
 
 void FlightDatabase::suspend_airport(int airport_id) {
-    suspended_airports_.insert(airport_id);
+    _suspended_airports.insert(airport_id);
 }
 
 void FlightDatabase::resume_airport(int airport_id) {
-    suspended_airports_.erase(airport_id);
+    _suspended_airports.erase(airport_id);
 }
 
 FlightStats FlightDatabase::stats() const {
     FlightStats s;
-    for (const auto& f : flights_) {
+    for (const auto& f : _flights) {
         if (!is_flight_active(f)) {
             continue;
         }
@@ -184,7 +184,7 @@ FlightStats FlightDatabase::stats() const {
 
 std::vector<Flight> FlightDatabase::direct_flights(int from, int to) const {
     std::vector<Flight> result;
-    for (const auto& f : flights_) {
+    for (const auto& f : _flights) {
         if (is_flight_active(f) && f.from_airport == from && f.to_airport == to) {
             result.push_back(f);
         }

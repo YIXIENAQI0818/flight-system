@@ -30,7 +30,7 @@ public:
 
     void load(const std::string& path);
 
-    const std::vector<Airport>& airports() const { return airports_; }
+    const std::vector<Airport>& airports() const { return _airports; }
     const Airport* find_by_id(int id) const;
 
     // 实验四1：机场名近似搜索，返回相似度降序的前 k 个。
@@ -52,9 +52,9 @@ public:
     static double similarity(const std::string& query, const Airport& airport);
 
 private:
-    std::vector<Airport> airports_;
-    std::unordered_map<int, size_t> id_to_index_;
-    std::unordered_map<std::string, std::vector<int>> by_province_; // 省份 -> 机场 id
+    std::vector<Airport> _airports;
+    std::unordered_map<int, size_t> _id_to_index;
+    std::unordered_map<std::string, std::vector<int>> _by_province; // 省份 -> 机场 id
 };
 
 } // namespace flight

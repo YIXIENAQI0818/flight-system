@@ -33,7 +33,7 @@ Criterion parse_criterion(const std::string& s);
 // 内部使用 FlightGraph（航班换乘图）做图算法。
 class RouteService {
 public:
-    explicit RouteService(const FlightDatabase& db) : db_(db) {}
+    explicit RouteService(const FlightDatabase& db) : _db(db) {}
 
     // 实验六1：连通性。返回从 from 到 to 的所有可行乘机方案（航班 ID 序列）。
     // max_transfers 为中转次数上限（0=直飞，1=可一次中转）。
@@ -54,10 +54,10 @@ public:
     MaxFlightsResult max_flights(int start_flight_id) const;
 
 private:
-    const FlightDatabase& db_;
+    const FlightDatabase& _db;
 
     // 按起飞时间排序的节点下标（FlightGraph 的拓扑序）。
-    static std::vector<int> topological_order(const FlightGraph& g);
+    static std::vector<int> _topological_order(const FlightGraph& g);
 };
 
 } // namespace flight

@@ -19,27 +19,27 @@ public:
     int run();
 
 private:
-    FlightDatabase db_;
-    AirportService airports_;
-    RouteService routes_;
+    FlightDatabase _db;
+    AirportService _airports;
+    RouteService _routes;
 
     // —— 各实验功能入口 ——
-    void show_stats() const;
-    void query_direct() const;
-    void add_flight();
-    void remove_flight();
-    void modify_flight();
-    void batch_apply();
-    void suspend_resume();
-    void max_flights() const;
-    void search_airport() const;
-    void recommend_province() const;
-    void busiest_airport() const;
-    void connectivity() const;
-    void optimal_route() const;
+    void _show_stats() const;
+    void _query_direct() const;
+    void _add_flight();
+    void _remove_flight();
+    void _modify_flight();
+    void _batch_apply();
+    void _suspend_resume();
+    void _max_flights() const;
+    void _search_airport() const;
+    void _recommend_province() const;
+    void _busiest_airport() const;
+    void _connectivity() const;
+    void _optimal_route() const;
 
-    static void print_flight(const Flight& f);
-    static void print_routes(const std::vector<std::vector<int>>& routes);
+    static void _print_flight(const Flight& f);
+    static void _print_routes(const std::vector<std::vector<int>>& routes);
 };
 
 } // namespace flight

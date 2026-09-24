@@ -38,11 +38,11 @@ public:
     // 从 CSV 加载航班（覆盖式，重新初始化）。
     void load(const std::string& path);
 
-    size_t size() const { return flights_.size(); }
-    bool empty() const { return flights_.empty(); }
+    size_t size() const { return _flights.size(); }
+    bool empty() const { return _flights.empty(); }
 
     // 原始全部航班（不过滤暂停）。
-    const std::vector<Flight>& flights() const { return flights_; }
+    const std::vector<Flight>& flights() const { return _flights; }
     // 活跃航班（过滤掉起降机场被暂停的航班）。
     std::vector<Flight> active_flights() const;
 
@@ -61,7 +61,7 @@ public:
     void resume_airport(int airport_id);
     bool is_airport_suspended(int airport_id) const;
     bool is_flight_active(const Flight& f) const;
-    const std::unordered_set<int>& suspended_airports() const { return suspended_airports_; }
+    const std::unordered_set<int>& suspended_airports() const { return _suspended_airports; }
 
     // —— 实验一：统计与直达查询 ——
     FlightStats stats() const;
@@ -72,11 +72,11 @@ public:
     static Flight parse_row(const std::vector<std::string>& fields);
 
 private:
-    std::vector<Flight> flights_;
-    std::unordered_map<int, size_t> id_to_index_;   // 航班 id -> 下标（加速查找）
-    std::unordered_set<int> suspended_airports_;    // 被暂停的机场 id
+    std::vector<Flight> _flights;
+    std::unordered_map<int, size_t> _id_to_index;   // 航班 id -> 下标（加速查找）
+    std::unordered_set<int> _suspended_airports;    // 被暂停的机场 id
 
-    void rebuild_index();
+    void _rebuild_index();
 };
 
 } // namespace flight
